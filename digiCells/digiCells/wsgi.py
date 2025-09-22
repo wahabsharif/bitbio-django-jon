@@ -18,6 +18,6 @@ sys.path.insert(0, str(BASE_DIR))
 from django.core.wsgi import get_wsgi_application
 
 # Set the Django settings module based on environment
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'digiCells.digiCells.settings.production')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'digiCells.settings.production')
 
 application = get_wsgi_application()

@@ -1,0 +1,83 @@
+services:
+  db:
+    image: postgres:15
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=digicells
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web-init:
+    build: .
+    volumes:
+      - .:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    environment:
+      - DJANGO_SETTINGS_MODULE=digiCells.settings.local
+      - DEBUG=1
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/digicells
+    depends_on:
+      db:
+        condition: service_healthy
+    command: >
+      sh -c "
+        echo '🔄 Running database migrations...' &&
+        cd digiCells &&
+        python manage.py migrate --noinput &&
+        echo '📁 Collecting static files...' &&
+        python manage.py collectstatic --noinput --clear &&
+        echo '👤 Creating superuser...' &&
+        python manage.py shell -c \"from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('super', 'super@super.com', 'super1122') if not User.objects.filter(username='super').exists() else print('Superuser already exists')\" &&
+        echo '✅ Setup complete!'
+      "
+    restart: "no"
+
+  web:
+    build: .
+    volumes:
+      - .:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    ports:
+      - "8000:8000"
+    environment:
+      - DJANGO_SETTINGS_MODULE=digiCells.settings.local
+      - DEBUG=1
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/digicells
+    depends_on:
+      - web-init
+    restart: unless-stopped
+    command: >
+      sh -c "
+        echo '📁 Ensuring static files are collected...' &&
+        cd digiCells &&
+        python manage.py collectstatic --noinput &&
+        echo '🚀 Starting Django server...' &&
+        python manage.py runserver 0.0.0.0:8000
+      "
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    depends_on:
+      - web
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  static_volume:
+  media_volume:

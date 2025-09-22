@@ -1,58 +1,57 @@
-{% extends 'bitbio_nucleus/base.html' %}
-
-{% block content %}
+{% extends 'base.html' %} {% block content %}
 <div class="container mt-5">
-    <div class="row">
-        <div class="col-md-12">
-            <div class="p-5 shadow">
-                <h3>3D PCA Plot</h3>
-                <p class="mb-4 lead">
-                    This 3D PCA plot shows the principal component analysis of the TPM counts, colored by group.
-                </p>
+  <div class="row">
+    <div class="col-md-12">
+      <div class="p-5 shadow">
+        <h3>3D PCA Plot</h3>
+        <p class="mb-4 lead">
+          This 3D PCA plot shows the principal component analysis of the TPM
+          counts, colored by group.
+        </p>
 
-                <!-- Plotly placeholder for PCA plot -->
-                <div id="pca-plot-3d"></div>
-            </div>
-        </div>
+        <!-- Plotly placeholder for PCA plot -->
+        <div id="pca-plot-3d"></div>
+      </div>
     </div>
+  </div>
 </div>
 
 <!-- Include Plotly JS library -->
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script>
-    var traces = [];
+  var traces = [];
 
-    {% for group, data in grouped_pca_data %}
-    traces.push({
-        x: {{ data.x|safe }},  // PC1
-        y: {{ data.y|safe }},  // PC2
-        z: {{ data.z|safe }},  // PC3
-        mode: 'markers',
-        name: '{{ group }}',  // Group name for the legend
-        text: {{ data.labels|safe }},  // Condition labels for hover text
-        marker: {
-            size: 8,
-            line: {
-                width: 2
-            }
-        },
-        type: 'scatter3d'  // Use 3D scatter plot
-    });
-    {% endfor %}
+  {% for group, data in grouped_pca_data %}
+  traces.push({
+      x: {{ data.x|safe }},  // PC1
+      y: {{ data.y|safe }},  // PC2
+      z: {{ data.z|safe }},  // PC3
+      mode: 'markers',
+      name: '{{ group }}',  // Group name for the legend
+      text: {{ data.labels|safe }},  // Condition labels for hover text
+      marker: {
+          size: 8,
+          line: {
+              width: 2
+          }
+      },
+      type: 'scatter3d'  // Use 3D scatter plot
+  });
+  {% endfor %}
 
-    var layout = {
-        title: '3D PCA of TPM Counts Colored by Group',
-        scene: {
-            xaxis: { title: 'PC1' },
-            yaxis: { title: 'PC2' },
-            zaxis: { title: 'PC3' }
-        },
-        hovermode: 'closest',
-        width: 1000,  // Increase width of the plot
-        height: 800,  // Increase height of the plot
-        legend: { title: { text: 'Groups' } }  // Add a title to the legend
-    };
+  var layout = {
+      title: '3D PCA of TPM Counts Colored by Group',
+      scene: {
+          xaxis: { title: 'PC1' },
+          yaxis: { title: 'PC2' },
+          zaxis: { title: 'PC3' }
+      },
+      hovermode: 'closest',
+      width: 1000,  // Increase width of the plot
+      height: 800,  // Increase height of the plot
+      legend: { title: { text: 'Groups' } }  // Add a title to the legend
+  };
 
-    Plotly.newPlot('pca-plot-3d', traces, layout);
+  Plotly.newPlot('pca-plot-3d', traces, layout);
 </script>
 {% endblock %}

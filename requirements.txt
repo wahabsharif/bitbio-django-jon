@@ -11,6 +11,8 @@ crispy-bootstrap5
 django-crispy-forms
 markdown
 PyPDF2
+scikit-learn
+plotly
 
 # external connections
 boto3

@@ -1,0 +1,17 @@
+# Apache and WSGI requirements for production deployment
+
+# Core WSGI module for Apache
+mod-wsgi==4.9.4
+
+# Additional Apache modules (install via system package manager)
+# apache2-dev
+# libapache2-mod-wsgi-py3
+
+# For Ubuntu/Debian systems, install with:
+# sudo apt-get update
+# sudo apt-get install apache2 apache2-dev libapache2-mod-wsgi-py3
+
+# For CentOS/RHEL systems, install with:
+# sudo yum install httpd httpd-devel mod_wsgi
+# or
+# sudo dnf install httpd httpd-devel mod_wsgi

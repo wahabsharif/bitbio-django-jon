@@ -19,11 +19,11 @@ else:
     }
 
 # Static files configuration for Docker
-STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+STATIC_ROOT = os.path.join(BASE_DIR.parent, "staticfiles")
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "digiCells_core", "static"),
 ]
-MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+MEDIA_ROOT = os.path.join(BASE_DIR.parent, "media")
 
 # Security settings for Docker
 SECRET_KEY = os.environ.get(

@@ -1,6 +1,7 @@
 services:
   db:
     image: postgres:15
+    container_name: db
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     environment:
@@ -17,6 +18,7 @@ services:
 
   web-init:
     build: .
+    container_name: web-init
     volumes:
       - .:/app
       - static_volume:/app/staticfiles
@@ -30,19 +32,21 @@ services:
         condition: service_healthy
     command: >
       sh -c "
+        echo '🔄 Waiting for database to be ready...' &&
+        sleep 3 &&
         echo '🔄 Running database migrations...' &&
         cd digiCells &&
         python manage.py migrate --noinput &&
         echo '📁 Collecting static files...' &&
         python manage.py collectstatic --noinput --clear &&
-        echo '👤 Creating superuser...' &&
-        python manage.py shell -c \"from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('super', 'super@super.com', 'super1122') if not User.objects.filter(username='super').exists() else print('Superuser already exists')\" &&
+        echo '👤 Skipping superuser creation (can be done manually later)...' &&
         echo '✅ Setup complete!'
       "
     restart: "no"
 
   web:
     build: .
+    container_name: web
     volumes:
       - .:/app
       - static_volume:/app/staticfiles
@@ -54,19 +58,23 @@ services:
       - DEBUG=1
       - DATABASE_URL=postgres://postgres:postgres@db:5432/digicells
     depends_on:
-      - web-init
+      web-init:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
     restart: unless-stopped
     command: >
       sh -c "
         echo '📁 Ensuring static files are collected...' &&
         cd digiCells &&
         python manage.py collectstatic --noinput &&
-        echo '🚀 Starting Django server...' &&
+        echo '🚀 Starting Django development server...' &&
         python manage.py runserver 0.0.0.0:8000
       "
 
   nginx:
     image: nginx:alpine
+    container_name: nginx
     ports:
       - "80:80"
     volumes:

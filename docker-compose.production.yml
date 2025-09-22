@@ -34,7 +34,7 @@ services:
       - media_volume:/app/media
       - logs_volume:/app/logs
     environment:
-      - DJANGO_SETTINGS_MODULE=digiCells.settings.production
+      - DJANGO_SETTINGS_MODULE=digiCells.digiCells.settings.production
       - DEBUG=${DEBUG:-False}
       - SECRET_KEY=${SECRET_KEY:-django-insecure-change-this-in-production}
       - DATABASE_URL=postgres://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@db:5432/${DB_NAME:-digicells}
@@ -75,7 +75,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DJANGO_SETTINGS_MODULE=digiCells.settings.production
+      - DJANGO_SETTINGS_MODULE=digiCells.digiCells.settings.production
       - DEBUG=${DEBUG:-False}
       - SECRET_KEY=${SECRET_KEY:-django-insecure-change-this-in-production}
       - DATABASE_URL=postgres://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@db:5432/${DB_NAME:-digicells}

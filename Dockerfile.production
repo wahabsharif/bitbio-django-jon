@@ -28,7 +28,7 @@ FROM python:3.11-slim as production
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
-ENV DJANGO_SETTINGS_MODULE=digiCells.settings.production
+ENV DJANGO_SETTINGS_MODULE=digiCells.digiCells.settings.production
 
 # Install runtime dependencies
 RUN apt-get update \

@@ -7,22 +7,22 @@ rule_files:
   # - "second_rules.yml"
 
 scrape_configs:
-  - job_name: 'prometheus'
+  - job_name: "prometheus"
     static_configs:
-      - targets: ['localhost:9090']
+      - targets: ["localhost:9090"]
 
-  - job_name: 'django-app'
+  - job_name: "django-app"
     static_configs:
-      - targets: ['web:8000']
-    metrics_path: '/metrics'
+      - targets: ["web:8000"]
+    metrics_path: "/metrics"
     scrape_interval: 30s
 
-  - job_name: 'nginx'
+  - job_name: "nginx"
     static_configs:
-      - targets: ['nginx:80']
+      - targets: ["nginx:80"]
     scrape_interval: 30s
 
-  - job_name: 'postgres'
+  - job_name: "postgres"
     static_configs:
-      - targets: ['db:5432']
+      - targets: ["db:5432"]
     scrape_interval: 30s

@@ -48,6 +48,9 @@ WORKDIR /app
 # Copy project
 COPY . /app/
 
+# Add the app directory to Python path
+ENV PYTHONPATH=/app
+
 # Create directories for static files, media, and logs
 RUN mkdir -p /app/staticfiles /app/media /app/logs /app/tmp
 

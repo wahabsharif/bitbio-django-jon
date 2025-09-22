@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% load crispy_forms_tags %}
+
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card p-5 shadow">
+        <h1 class="text-center">Nucleus login</h1>
+        {% if messages %}
+          <ul class="messages mt-3">
+            {% for message in messages %}
+              <li {% if message.tags %} class="alert alert-{{ message.tags }}" {% endif %}>
+                {{ message }}
+              </li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+        <form method="post" id="id-login-form">
+          {% crispy login_form %}
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .messages {
+    padding: 0;
+    margin: 0;
+    list-style-type: none;
+  }
+
+  .messages .alert {
+    padding: 0.5rem;
+  }
+</style>
+
+{% endblock %}

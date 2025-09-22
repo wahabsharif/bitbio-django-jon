@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container py-5">
+  <!-- Header -->
+  <div class="text-start mb-4">
+    <img src="https://dev.zeeteck.com/projects/bit-bio-calculator/assets/images/bitbio-logo.png" alt="bit.bio" style="height: 2rem;">
+    <h1 class="h3 mt-3 fw-bold">Cell seeding calculator</h1>
+    <p class="text-muted">
+      This calculator helps scientists to quickly determine how much cell stock solution and culture media is needed
+      for seeding cells in a variety of different culture vessels. By following this simple step-by-step guide,
+      you can get your results instantly!
+    </p>
+  </div>
+
+  <div class="row">
+    <!-- Form -->
+    <div class="col-lg-8">
+      <div class="card p-4 shadow-sm">
+        <form method="post" novalidate>
+          {% csrf_token %}
+          {{ form.non_field_errors }}
+          
+          <div class="row g-3">
+            <div class="col-md-6">
+              {{ form.suspension_volume|as_crispy_field }}
+            </div>
+          </div>
+
+          <h5 class="mt-4">Live cell count</h5>
+          <div class="row g-3">
+            <div class="col-md-4">
+              {{ form.count1|as_crispy_field }}
+            </div>
+            <div class="col-md-4">
+              {{ form.count2|as_crispy_field }}
+            </div>
+            <div class="col-md-4">
+              {{ form.count3|as_crispy_field }}
+            </div>
+          </div>
+
+          <h5 class="mt-4">Cell viability</h5>
+          <div class="row g-3">
+            <div class="col-md-4">
+              {{ form.viability1|as_crispy_field }}
+            </div>
+            <div class="col-md-4">
+              {{ form.viability2|as_crispy_field }}
+            </div>
+            <div class="col-md-4">
+              {{ form.viability3|as_crispy_field }}
+            </div>
+          </div>
+
+          <h5 class="mt-4">Seeding parameters</h5>
+          <div class="row g-3">
+            <div class="col-md-6">
+              {{ form.cell_type|as_crispy_field }}
+            </div>
+            <div class="col-md-6">
+              {{ form.seeding_density|as_crispy_field }}
+            </div>
+            <div class="col-md-6">
+              {{ form.culture_vessel|as_crispy_field }}
+            </div>
+            <div class="col-md-6">
+              {{ form.surface_area|as_crispy_field }}
+            </div>
+            <div class="col-md-6">
+              {{ form.media_volume|as_crispy_field }}
+            </div>
+            <div class="col-md-6">
+              {{ form.num_wells|as_crispy_field }}
+            </div>
+            <div class="col-md-6">
+              {{ form.buffer|as_crispy_field }}
+            </div>
+          </div>
+
+          <div class="mt-4">
+            <button type="submit" class="btn btn-primary w-100">Calculate results</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4 mt-4 mt-lg-0">
+      <div class="card p-4 h-100 shadow-sm">
+        <h5 class="fw-bold">How to get started?</h5>
+        <ul class="list-unstyled small mt-3">
+          <li>• Start by entering your cell stock volume.</li>
+          <li>• Add your cell count and viability. Ideally perform your count three times.</li>
+          <li>• Select your cell type and the recommended seeding density will be populated.</li>
+          <li>• Choose your vessel format to automatically fill in the surface area and volume.</li>
+          <li>• Include a 10–20% dead volume allowance or adjust based on your workflow.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results -->
+  {% if result %}
+    <div class="card mt-5 p-4 shadow-sm">
+      <h3 class="h5 fw-bold mb-3">Results</h3>
+      <ul class="list-group">
+        <li class="list-group-item d-flex justify-content-between">
+          <span>Cell density</span>
+          <strong>{{ result.cell_density|floatformat:2 }} cells/mL</strong>
+        </li>
+        <li class="list-group-item d-flex justify-content-between">
+          <span>Cells per well</span>
+          <strong>{{ result.cells_per_well|floatformat:0 }}</strong>
+        </li>
+        <li class="list-group-item d-flex justify-content-between">
+          <span>Required total cells</span>
+          <strong>{{ result.required_cells_total|floatformat:2 }}</strong>
+        </li>
+        <li class="list-group-item d-flex justify-content-between">
+          <span>Volume to seed</span>
+          <strong>{{ result.volume_to_seed|floatformat:2 }} mL</strong>
+        </li>
+        <li class="list-group-item d-flex justify-content-between">
+          <span>Volume to dilute</span>
+          <strong>{{ result.volume_to_dilute|floatformat:2 }} mL</strong>
+        </li>
+        <li class="list-group-item d-flex justify-content-between">
+          <span>Volume per well</span>
+          <strong>{{ result.volume_per_well_ul|floatformat:0 }} µL</strong>
+        </li>
+      </ul>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
+

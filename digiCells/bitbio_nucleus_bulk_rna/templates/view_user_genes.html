@@ -1,0 +1,42 @@
+{% extends "bitbio_nucleus/base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="p-5 shadow">
+                <h3>Your Assigned Genes</h3>
+                <p class="lead">
+                    Below is the list of genes you have currently requested.
+                </p>
+
+                {% if assigned_genes %}
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Gene Name</th>
+                                <th>Ensembl ID</th>
+                                <th>Long Name</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for gene in assigned_genes %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>{{ gene.gene_name }}</td>
+                                    <td>{{ gene.ensembl_id }}</td>
+                                    <td>{{ gene.long_name|default:"N/A" }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p class="text-muted">You have not requested any genes yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

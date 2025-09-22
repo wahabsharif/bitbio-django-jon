@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+{% load static %}
+{% load custom_filters %}
+{% load django_tables2 %}
+
+{% block content %}
+
+<!-- Banner Section -->
+<div class="position-relative d-flex align-items-center"
+     style="
+            background-size: cover;
+            background-position: center;
+            height: 400px;">
+
+    <!-- Content Over the Background - Using container-fluid for full width -->
+    <div class="container-fluid px-5">
+        <div class="text-start" style="max-width: 600px; color: black;">
+            <h1 class="">ioCells Transcriptomic Data</h1>
+            <p class="lead">Query bulk RNA sequencing data on ioCells, so you can gather high-quality insights to drive your research.</p>
+            <p>If your product of interest is not available here, please contact
+                <a href="mailto:technical@bit.bio" class="" style="color: black; text-decoration: none;">technical@bit.bio</a>.
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid px-5 mt-5">
+    <!-- Top Row: Header, Search, and User Tier Side by Side -->
+    <div class="row align-items-start mb-5">
+        <!-- Left Column: Title and Search -->
+        <div class="col-md-8">
+            <h3 class="text-black">Bulk RNA Analyses</h3>
+
+            <!-- Search Box with Border and Magnifying Glass Icon -->
+            <div class="mb-4 position-relative">
+                <input type="text" id="searchBox" class="form-control" placeholder="Search"
+                    style="border: 1px solid #ccc;
+                           outline: none;
+                           font-size: 20px;
+                           width: 100%;
+                           padding: 10px 15px 10px 15px;
+                           padding-right: 40px; /* Make space for the icon */
+                           background: transparent;
+                           position: relative;
+                           z-index: 2;
+                           box-shadow: none;">
+                           
+                <!-- Magnifying Glass Icon -->
+                <div style="position: absolute;
+                           top: 50%;
+                           right: 15px;
+                           transform: translateY(-50%);
+                           z-index: 3;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#999" viewBox="0 0 16 16">
+                        <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: User Tier Box -->
+        <div class="col-md-4">
+            <div class="card h-100 d-flex flex-column" style="background-color: #f8f9fa; border: none; padding: 15px;">
+                <!-- Tier Name Section -->
+                <div class="card-body text-start d-flex align-items-center"
+                     style=" height: 50px;">
+                    <h5 class="card-title mb-0 text-black">Your Tier: {{ user_tier.tier.name }}</h5>
+                </div>
+
+                <!-- Progress & Details -->
+                <div class="card-body d-flex flex-column text-start" style="flex-grow: 1;">
+                    <p class="card-text text-black">{{ user_tier.tier.description }}</p>
+
+                    <!-- Progress Bar -->
+                    <div class="progress mb-3" style="height: 20px;">
+                        <div class="progress-bar
+                            {% if usage_percentage > 90 %}bg-danger
+                            {% elif usage_percentage > 75 %}bg-warning
+                            {% else %}bg-success{% endif %}"
+                            role="progressbar"
+                            style="width: {{ usage_percentage }}%;"
+                            aria-valuenow="{{ usage_percentage }}"
+                            aria-valuemin="0"
+                            aria-valuemax="100">
+                        </div>
+                    </div>
+
+                    <!-- Gene Usage Details -->
+                    <p class="text-black"><strong>{{ user_request.genes.count }}</strong> of <strong>{{ user_tier.tier.max_genes }}</strong> genes used.</p>
+
+                    <!-- Action Buttons -->
+                    <div class="mt-auto d-flex gap-2">
+                        <a href="#" id="upgrade-tier" class="btn btn-primary flex-fill" style="border-radius: 0;">Upgrade Tier</a>
+                        <a href="{% url 'bulk_rna:view_user_genes' %}" class="btn btn-secondary flex-fill" style="border-radius: 0;">View Genes</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bottom Row: Card Grid -->
+    <div class="row">
+        <div class="col-12">
+            <!-- Card Grid -->
+            <div class="row row-cols-1 row-cols-md-5 g-4" id="sampleCards">
+                {% for record in bulk_rna_table.data %}
+                <div class="col">
+                    <a href="{% url 'bulk_rna:explore_analysis' analysis_id=record.id %}" class="text-decoration-none text-black">
+                        <div class="card h-100 d-flex flex-column" style="background-color: #f8f9fa; border: none;">
+
+                            <!-- Top Section: Fixed-Height Image -->
+                            <div class="card-img-top" style="
+                                background-image: url('{% static "images/" %}{{ record.product|default:"default" }}.png');
+                                background-size: cover;
+                                background-position: center;
+                                height: 150px;">
+                            </div>
+
+                            <!-- Middle Section: Fixed-Height Product Name -->
+                            <div class="card-body text-start d-flex align-items-center justify-content-center"
+                                 style="background: #343a40; color: white; height: 60px; min-height: 60px; max-height: 60px;">
+                                <h5 class="card-title mb-0 text-white text-center w-100" style="overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
+                                    {{ record.product }}
+                                </h5>
+                            </div>
+
+                            <!-- Bottom Section: Conditions and Description -->
+                            <div class="card-body text-start">
+                                <p class="card-text text-black"><strong>Conditions:</strong> {{ record.conditions }}</p>
+                                {% if record.description %}
+                                    <p class="card-text text-black"><strong>Description:</strong> {{ record.description }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Custom styles to override Bootstrap defaults */
+    
+    /* Remove rounded corners from all buttons */
+    .btn {
+        border-radius: 0 !important;
+    }
+    
+    /* Remove rounded corners from form controls */
+    .form-control {
+        border-radius: 0 !important;
+    }
+    
+    /* Remove rounded corners from cards and card components */
+    .card, .card-img-top, .card-body, .progress {
+        border-radius: 0 !important;
+    }
+    
+    /* Custom search box styling */
+    #searchBox:focus {
+        border-color: #999 !important;
+        box-shadow: none !important;
+    }
+    
+    #searchBox::placeholder {
+        color: #999;
+        opacity: 0.7;
+    }
+</style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Search functionality
+        const searchBox = document.getElementById("searchBox");
+        const cards = document.querySelectorAll("#sampleCards .col");
+
+        searchBox.addEventListener("keyup", function() {
+            let searchValue = searchBox.value.toLowerCase();
+            cards.forEach(card => {
+                let titleText = card.querySelector(".card-title").textContent.toLowerCase();
+                let conditionsText = card.querySelector(".card-text").textContent.toLowerCase();
+
+                // Check if search value is in either the product name or conditions
+                if (titleText.includes(searchValue) || conditionsText.includes(searchValue)) {
+                    card.style.display = "block";
+                } else {
+                    card.style.display = "none";
+                }
+            });
+        });
+    });
+</script>
+
+{% endblock %}

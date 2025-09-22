@@ -1,0 +1,453 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card mb-4 shadow">
+                <div class="card-body">
+                    <h4 class="card-title">Explore: {{ analysis.product }}</h4>
+                    <p class="mb-4 lead">{{ analysis.description }}</p>
+
+                    <h6>
+                        <a href="#" data-bs-toggle="modal" data-bs-target="#documentationModal">
+                            Help <i class="ms-1 bi bi-info-circle"></i>
+                        </a>
+                    </h6>
+
+                    {% include "bulk_rna_documentation.html" %}
+
+                    <!-- Form to select genes and conditions -->
+                    <form method="POST">
+                        {% csrf_token %}
+
+                        <!-- Radio buttons to choose selection type -->
+                        <div class="form-group mt-3">
+                            <label class="form-label">Select Gene Input Type</label>
+                            <div class="btn-group" role="group" aria-label="Gene Input Type Toggle">
+                                <input type="radio" class="btn-check" name="selection_type" id="individual" value="individual" onclick="toggleSelectionType()" checked>
+                                <label class="btn btn-outline-primary" for="individual">Individual Genes</label>
+
+                                <input type="radio" class="btn-check" name="selection_type" id="gene_set" value="gene_set" onclick="toggleSelectionType()">
+                                <label class="btn btn-outline-primary" for="gene_set">Gene Set</label>
+                            </div>
+                        </div>
+
+                        <!-- Individual Genes Selection (Gene Search) -->
+                        <div id="individual-genes-section" class="form-group mt-4">
+                            <label for="gene-search">Search and Add Genes</label>
+                            <input type="text" id="gene-search" class="form-control" placeholder="Type gene name or Ensembl ID" autocomplete="off">
+
+                            <!-- Display the selected genes -->
+                            <ul id="selected-genes-list" class="list-group mt-2">
+                                {% for gene in selected_gene_objects %}
+                                    <li class="list-group-item">
+                                        {{ gene.ensembl_id }} - {{ gene.gene_name }}
+                                        <input type="hidden" name="genes" value="{{ gene.df_string }}">
+                                        <button type="button" class="btn btn-sm btn-danger float-end remove-gene">Remove</button>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+
+                        <!-- Gene Set Selection -->
+                        <div id="gene-set-section" class="form-group mt-4" style="display: none;">
+                            <label for="gene-sets">Select Gene Set</label>
+                            <select name="gene_set" id="gene-sets" class="form-control" onchange="showGeneSetInfo()">
+                                <option value="">-- Select a Gene Set --</option>
+                                {% for collection in gene_collections %}
+                                    <option value="{{ collection.id }}" data-description="{{ collection.description }}" data-creator="{{ collection.created_by.username }}">
+                                        {{ collection.collection_name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <div class="mt-4">
+                                <a href="{% url 'bulk_rna:create_gene_collection' analysis_id=analysis.id %}" class="btn btn-primary">Create new</a>
+                                <a href="{% url 'bulk_rna:gene_collection_list' analysis_id=analysis.id %}" class="btn btn-primary">View current</a>
+                            </div>
+                        </div>
+
+                        <!-- Info Window for Selected Gene Set -->
+                        <div id="gene-set-info" class="alert alert-info mt-4" style="display: none;">
+                            <h5>Gene Set Information</h5>
+                            <p id="gene-set-description"></p>
+                            <p><strong>Created by:</strong> <span id="gene-set-creator"></span></p>
+                        </div>
+
+                        <!-- Condition Selection -->
+                        <div class="form-group mt-4">
+                            <label for="conditions">Select Conditions</label>
+                            <select name="conditions" id="conditions" class="form-control" multiple>
+                                {% for condition in conditions %}
+                                    <option value="{{ condition }}" {% if condition in selected_conditions %}selected{% endif %}>{{ condition }}</option>
+                                {% endfor %}
+                            </select>
+                            <small class="form-text text-muted">Hold down the Ctrl (Windows) or Command (Mac) button to select multiple conditions.</small>
+                        </div>
+
+                        <!-- Display Toggle for Ensembl ID or Gene Name -->
+                        <div class="form-group mt-4">
+                            <label class="form-label">Display Gene Identifier</label>
+                            <div class="btn-group" role="group" aria-label="Gene Identifier Toggle">
+                                <input type="radio" class="btn-check" name="display_field" id="display_name" value="gene_name" onclick="updateDisplayField()" checked>
+                                <label class="btn btn-outline-primary" for="display_name">Gene Name</label>
+
+                                <input type="radio" class="btn-check" name="display_field" id="display_ensembl" value="ensembl_id" onclick="updateDisplayField()">
+                                <label class="btn btn-outline-primary" for="display_ensembl">Ensembl ID</label>
+                            </div>
+                        </div>
+
+                        {% if user_tier.tier.name == "Researcher" %}
+                        <!-- Normalisation Options -->
+                        <div class="form-group mt-4">
+                            <label>Normalisation Options</label>
+
+                            <!-- Toggle for Center -->
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="toggle-center" name="norm_center" value="true" {% if applied_normalisation.center %}checked{% endif %}>
+                                <label class="form-check-label" for="toggle-center">Center Data</label>
+                            </div>
+
+                            <!-- Toggle for Scale -->
+                            <div class="form-check form-switch mt-2">
+                                <input class="form-check-input" type="checkbox" id="toggle-scale" name="norm_scale" value="true" {% if applied_normalisation.scale %}checked{% endif %}>
+                                <label class="form-check-label" for="toggle-scale">Scale Data</label>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Submit Button -->
+                        <button type="submit" class="btn btn-primary mt-4">Plot Expression</button>
+                    </form>
+
+                    {% if user_tier.tier.name == "Researcher" %}
+                        <!-- Button to view PCA -->
+                        <div class="mt-4">
+                            <a href="{% url 'bulk_rna:pca_view' analysis.id %}" class="btn btn-secondary">View PCA</a>
+                        </div>
+                    {% endif %}
+
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- Right Column: Parameters and Plot Outputs -->
+        <div class="col-md-8">
+
+            {% if non_accessible_genes %}
+            <div class="card shadow mb-4">
+                <div class="card-body" style="background-color: #FFE5B4; border: none;">
+                    <h4 class="card-title">The following genes are not available</h4>
+                    <ul class="mb-3">
+                        {% for gene in non_accessible_genes %}
+                            <li>{{ gene }}</li>
+                        {% endfor %}
+                    </ul>
+                    <p class="card-text">Please subscribe to premium for access</p>
+                </div>
+            </div>
+            {% endif %}
+
+                <!-- Display the appropriate plot based on plot_type -->
+                {% if plot_type == 'bar' %}
+                <div class="card shadow mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Gene Expression Box Plot</h5>
+                        <div id="gene-expression-boxplot"></div>
+                    </div>
+                </div>
+
+                <!-- Plotly JavaScript to plot the bar chart -->
+                <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+                <script>
+                    var data = [{
+                        x: {{ selected_conditions|safe }},
+                        y: [{% for i in plot_data.values %}{{ i }}, {% endfor %}],
+                        type: 'bar'
+                    }];
+
+                    var layout = {
+                        title: 'Gene Expression for {{ selected_gene_objects.0 }}',
+                        xaxis: { title: 'Condition' },
+                        yaxis: { title: 'Expression Level' }
+                    };
+
+                    Plotly.newPlot('gene-expression-barplot', data, layout);
+                </script>
+
+                {% elif plot_type == 'boxplot' %}
+                <div class="card shadow mb-4">
+                    <div class="card-body">
+                        <div id="gene-expression-boxplot"></div>
+                    </div>
+                </div>
+
+                <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+                <script>
+                    // Separate conditions by unique names (e.g., "skin_scrape") and collect replicate values
+                    const plotData = {{ plot_data|safe }};  // Assume plot_data is a dictionary: {sample_name: expression_level, ...}
+                    const conditions = {};  // Dictionary to hold grouped replicates by condition
+
+                    // Process each sample in plotData
+                    Object.keys(plotData).forEach(sampleName => {
+                        // Extract the base condition name by removing the replicate suffix (e.g., "skin_scrape" from "skin_scrape_R1")
+                        const baseCondition = sampleName.replace(/_R\d+$/, '');
+
+                        // Initialize an array for the condition if it doesn't exist
+                        if (!conditions[baseCondition]) {
+                            conditions[baseCondition] = [];
+                        }
+
+                        // Add the expression level to the condition's array
+                        conditions[baseCondition].push(plotData[sampleName]);
+                    });
+
+                    // Convert conditions data to Plotly box plot format
+                    const data = Object.keys(conditions).map(condition => ({
+                        y: conditions[condition],
+                        name: condition,
+                        type: 'box'
+                    }));
+
+                    // Layout for the box plot
+                    const layout = {
+                        title: 'Gene Expression Box Plot for {{ selected_gene_objects.0 }}',
+                        xaxis: { title: 'Condition' },
+                        yaxis: { title: 'Expression Level' }
+                    };
+
+                    // Plotly box plot
+                    Plotly.newPlot('gene-expression-boxplot', data, layout);
+                </script>
+
+                {% elif plot_type == 'heatmap' %}
+                <div class="card shadow mb-4">
+                    <div class="card-body">
+                        <h4>Heatmap of Expression Levels</h4>
+                        <div id="gene-expression-heatmap"></div>
+                    </div>
+                </div>
+
+                <!-- Plotly JavaScript to plot the heatmap -->
+                <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+                <script>
+
+                    const genes = [
+                        {% if display_field == 'ensembl_id' %}
+                            {% for gene in selected_gene_objects %}
+                                "{{ gene.ensembl_id }}"{% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            {% for gene in selected_gene_objects %}
+                                "{{ gene.gene_name }}"{% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    ];
+
+                    var data = [{
+                        z: {{ plot_data|safe }},
+                        x: {{ selected_conditions|safe }},
+                        y: genes,
+                        type: 'heatmap',
+                        colorscale: 'Viridis'
+                    }];
+
+                    var layout = {
+                        title: 'Gene Expression Heatmap',
+                        xaxis: { title: 'Conditions' },
+                        yaxis: { title: 'Genes' }
+                    };
+
+                    Plotly.newPlot('gene-expression-heatmap', data, layout);
+                </script>
+
+                {% endif %}
+
+                <div class="card shadow mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Your Tier: {{ user_tier.tier.name }}</h5>
+                        <p class="card-text">{{ user_tier.tier.description }}</p>
+
+                        <!-- Progress bar for gene usage -->
+                        <div class="progress mb-3" style="height: 20px;">
+                            <div class="progress-bar
+                                {% if usage_percentage > 90 %}bg-danger
+                                {% elif usage_percentage > 75 %}bg-warning
+                                {% else %}bg-success{% endif %}"
+                                role="progressbar"
+                                style="width: {{ usage_percentage }}%;"
+                                aria-valuenow="{{ usage_percentage }}"
+                                aria-valuemin="0"
+                                aria-valuemax="100">
+                                {{ usage_percentage }}%
+                            </div>
+                        </div>
+
+                        <!-- Gene usage details -->
+                        <p><strong>{{ user_request.genes.count }}</strong> of <strong>{{ user_tier.tier.max_genes }}</strong> genes used.</p>
+
+                        <!-- Upgrade button -->
+                        <a href="#" id="upgrade-tier" class="btn btn-primary">
+                            Upgrade Tier
+                        </a>
+                        <!-- View currently used genes button -->
+                        <a href="{% url 'bulk_rna:view_user_genes' %}" class="btn btn-secondary">
+                            View Genes
+                        </a>
+                    </div>
+                </div>
+
+                {% if plot_type %}
+                <!-- Parameters Display Section -->
+                <div class="card shadow mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Plot Parameters</h5>
+                    <table class="table table-borderless">
+                        <tbody>
+                            <!-- Selected Genes -->
+                            <tr>
+                                <td style="width: 30%;"><strong>Selected Genes:</strong></td>
+                                <td>
+                                <div class="d-flex flex-wrap">
+                                    {% for a_gene in selected_gene_objects %}
+                                        <a href="http://www.ensembl.org/Homo_sapiens/Gene/Summary?g={{ a_gene.ensembl_id }}"
+                                           target="_blank"
+                                           class="custom-badge badge-color-{{ forloop.counter|divisibleby:4|add:1 }}">
+                                            {{ a_gene }}
+                                            <i class="bi bi-box-arrow-up-right ms-1"></i>
+                                        </a>
+                                    {% endfor %}
+                            </div>
+                                </td>
+                            </tr>
+
+                            <!-- Conditions -->
+                            <tr>
+                                <td style="width: 30%;"><strong>Conditions:</strong></td>
+                                <td>
+                                    <div class="d-flex flex-wrap">
+                                        {% for a_cond in selected_conditions %}
+                                            <span class="custom-badge badge-color-{{ forloop.counter|divisibleby:4|add:1 }}">{{ a_cond }}</span>
+                                        {% endfor %}
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <!-- Display Gene Identifier -->
+                            <tr>
+                                <td style="width: 30%;"><strong>Display Gene Identifier:</strong></td>
+                                <td>
+                                    <span class="custom-badge badge-color-1">{{ display_field|title }}</span>
+                                </td>
+                            </tr>
+
+                            <!-- Applied Normalisations -->
+                            <tr>
+                                <td style="width: 30%;"><strong>Applied Normalisations:</strong></td>
+                                <td>
+                                    {% for key, value in applied_normalisation.items %}
+                                        <span class="custom-badge {% if value %}bg-primary{% else %}bg-danger{% endif %} text-white me-2">
+                                            {{ key|capfirst }}: {{ value|yesno:"True,False" }}
+                                        </span>
+                                    {% endfor %}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+
+                        <div class="mt-4">
+                            <h5 class="mb-4">Download raw mean TPM values</h5>
+                            <form method="POST" action="{% url 'bulk_rna:download_csv' analysis_id=analysis.id %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="normalisation" value="{{ applied_normalisation|join:',' }}">
+                                <input type="hidden" name="genes" value="{{ selected_gene_objects | extract_df_strings | join:',' }}">
+                                <input type="hidden" name="conditions" value="{{ selected_conditions | join:',' }}">
+                                <button type="submit" class="btn btn-primary">Download as CSV</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- jQuery and jQuery UI (for autocomplete functionality) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+
+<script>
+    function toggleSelectionType() {
+        const individualGenesSection = document.getElementById('individual-genes-section');
+        const geneSetSection = document.getElementById('gene-set-section');
+        const individualOption = document.getElementById('individual').checked;
+
+        if (individualOption) {
+            individualGenesSection.style.display = 'block';
+            geneSetSection.style.display = 'none';
+            document.getElementById('gene-set-info').style.display = 'none';
+        } else {
+            individualGenesSection.style.display = 'none';
+            geneSetSection.style.display = 'block';
+        }
+    }
+
+    function showGeneSetInfo() {
+        const select = document.getElementById('gene-sets');
+        const selectedOption = select.options[select.selectedIndex];
+
+        if (selectedOption.value) {
+            const description = selectedOption.getAttribute('data-description');
+            const creator = selectedOption.getAttribute('data-creator');
+
+            document.getElementById('gene-set-description').innerText = description;
+            document.getElementById('gene-set-creator').innerText = creator;
+            document.getElementById('gene-set-info').style.display = 'block';
+        } else {
+            document.getElementById('gene-set-info').style.display = 'none';
+        }
+    }
+
+    // Initialize the selection type on page load
+    toggleSelectionType();
+
+    // Gene Search and Autocomplete
+    $(document).ready(function() {
+        // Initialize autocomplete for gene search input
+        $("#gene-search").autocomplete({
+            source: "{% url 'bulk_rna:gene_autocomplete' %}",
+            minLength: 2,
+            select: function(event, ui) {
+                // Add selected gene to the list
+                addGeneToList(ui.item.label, ui.item.id);
+                // Clear the search input
+                $(this).val("");
+                return false;
+            }
+        });
+
+        // Function to add a selected gene to the list
+        function addGeneToList(label, geneId) {
+            const geneItem = `
+                <li class="list-group-item">
+                    ${label}
+                    <input type="hidden" name="genes" value="${geneId}">
+                    <button type="button" class="btn btn-sm btn-danger float-end remove-gene">Remove</button>
+                </li>`;
+            $("#selected-genes-list").append(geneItem);
+        }
+
+        // Remove gene from the selected list when clicking "Remove"
+        $(document).on("click", ".remove-gene", function() {
+            $(this).closest("li").remove();
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends 'bitbio_nucleus/base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="p-5 shadow">
+                <h3>PCA Plot</h3>
+                <p class="mb-4 lead">
+                    This PCA plot shows the principal component analysis of the TPM counts, colored by group.
+                </p>
+
+                <!-- Plotly placeholder for PCA plot -->
+                <div id="pca-plot"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include Plotly JS library -->
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+    var trace = {
+        x: {{ pc1_values|safe }},
+        y: {{ pc2_values|safe }},
+        mode: 'markers',
+        text: {{ conditions|safe }},  // Use group names as hover text
+        marker: {
+            size: 12,
+            color: {{ group_numeric|safe }},  // Use numeric values for colors
+            colorscale: 'Viridis',  // Optional color scale
+            showscale: false,  // Show color scale
+            line: {
+                width: 2
+            }
+        }
+    };
+
+    var layout = {
+        title: 'PCA of TPM Counts Colored by Group',
+        xaxis: { title: 'PC1' },
+        yaxis: { title: 'PC2' },
+        hovermode: 'closest'
+    };
+
+    Plotly.newPlot('pca-plot', [trace], layout);
+</script>
+{% endblock %}

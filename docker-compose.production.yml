@@ -55,7 +55,7 @@ services:
         echo '📁 Collecting static files...' &&
         python manage.py collectstatic --noinput --clear &&
         echo '👤 Creating superuser if not exists...' &&
-        python manage.py createsuperuser --noinput || true &&
+        python manage.py createsuperuser --username ${SUPERUSER_USERNAME:-super} --email ${SUPERUSER_EMAIL:-super@super.com} --noinput || true &&
         echo '✅ Database setup complete!' &&
         echo '🚀 Ready to start application...'
       "

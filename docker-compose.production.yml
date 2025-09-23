@@ -38,7 +38,7 @@ services:
       - DEBUG=${DEBUG:-False}
       - SECRET_KEY=${SECRET_KEY:-django-insecure-change-this-in-production}
       - DATABASE_URL=postgres://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@db:5432/${DB_NAME:-digicells}
-      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost,127.0.0.1,172.187.225.83,member.bit.bio}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost,127.0.0.1,172.187.225.83,member.bit.bio,fs.capture.dev.workplaceservicing.co.uk,rdg.capture.dev.workplaceservicing.co.uk}
       - SUPERUSER_USERNAME=${SUPERUSER_USERNAME:-super}
       - SUPERUSER_EMAIL=${SUPERUSER_EMAIL:-super@super.com}
       - SUPERUSER_PASSWORD=${SUPERUSER_PASSWORD:-super1122}
@@ -79,7 +79,7 @@ services:
       - DEBUG=${DEBUG:-False}
       - SECRET_KEY=${SECRET_KEY:-django-insecure-change-this-in-production}
       - DATABASE_URL=postgres://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@db:5432/${DB_NAME:-digicells}
-      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost,127.0.0.1,172.187.225.83,member.bit.bio}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost,127.0.0.1,172.187.225.83,member.bit.bio,fs.capture.dev.workplaceservicing.co.uk,rdg.capture.dev.workplaceservicing.co.uk}
     depends_on:
       web-init:
         condition: service_completed_successfully

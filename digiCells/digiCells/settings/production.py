@@ -85,6 +85,23 @@ CSRF_FAILURE_VIEW = "django.views.csrf.csrf_failure"
 # SESSION_COOKIE_SECURE = True
 # CSRF_COOKIE_SECURE = True
 
+# Password validation - override to allow super1122 password
+AUTH_PASSWORD_VALIDATORS = [
+    # Temporarily disabled to allow super1122 password
+    # {
+    #     "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+    # },
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+    },
+]
+
 # Logging configuration
 LOGGING = {
     "version": 1,

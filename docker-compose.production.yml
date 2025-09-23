@@ -23,7 +23,6 @@ services:
     networks:
       - app-network
 
-
   web-init:
     build:
       context: .
@@ -105,8 +104,23 @@ services:
       - static_volume:/app/staticfiles
       - media_volume:/app/media
       - /etc/letsencrypt:/etc/letsencrypt:ro  # Let's Encrypt certificates
+      - ./ssl:/etc/nginx/ssl   # <-- maps root-level ./ssl to container
     depends_on:
       - web
+    entrypoint: >
+      sh -c "
+        if [ ! -f /etc/nginx/ssl/cert.pem ] || [ ! -f /etc/nginx/ssl/key.pem ]; then
+          echo '🔐 Generating self-signed SSL certificate...' &&
+          mkdir -p /etc/nginx/ssl &&
+          openssl req -x509 -newkey rsa:2048 -nodes -days 365 \
+            -keyout /etc/nginx/ssl/key.pem \
+            -out /etc/nginx/ssl/cert.pem \
+            -subj '/C=US/ST=CA/L=SanFrancisco/O=MyApp/OU=Dev/CN=localhost';
+        else
+          echo '✅ SSL certs already exist in ./ssl, skipping generation.';
+        fi &&
+        nginx -g 'daemon off;'
+      "
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
@@ -116,7 +130,6 @@ services:
     networks:
       - app-network
 
-  # Optional: Grafana for monitoring dashboards
   grafana:
     image: grafana/grafana:latest
     container_name: grafana

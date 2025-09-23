@@ -3,7 +3,7 @@ import os
 import dj_database_url
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 
 # Override ALLOWED_HOSTS for production
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
@@ -58,14 +58,18 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 # CSRF cookie settings
-CSRF_COOKIE_SECURE = True
-CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SECURE = False  # Set to False for now to test
+CSRF_COOKIE_HTTPONLY = False  # Set to False for now to test
 CSRF_COOKIE_SAMESITE = "Lax"
 
 # Session cookie settings
-SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = False  # Set to False for now to test
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
+
+# Additional CSRF settings
+CSRF_USE_SESSIONS = False
+CSRF_COOKIE_AGE = 31449600
 
 # HTTPS settings (uncomment when using HTTPS)
 # SECURE_SSL_REDIRECT = True

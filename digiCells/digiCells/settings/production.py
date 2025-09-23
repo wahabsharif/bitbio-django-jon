@@ -8,6 +8,11 @@ DEBUG = False
 # Override ALLOWED_HOSTS for production
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
+# Add additional security for production
+ALLOWED_HOSTS.extend(
+    ["localhost", "127.0.0.1", "0.0.0.0", "_"]  # Allow nginx default server_name
+)
+
 # Database configuration
 # Use PostgreSQL in production
 if os.environ.get("DATABASE_URL"):

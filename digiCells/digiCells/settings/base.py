@@ -139,10 +139,13 @@ LOGOUT_REDIRECT_URL = "/"
 # CSRF Settings
 CSRF_COOKIE_SECURE = False  # Set to True in production with HTTPS
 CSRF_COOKIE_HTTPONLY = True
-CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = "Lax"
 CSRF_TRUSTED_ORIGINS = [
-    'http://localhost:8000',
-    'http://127.0.0.1:8000',
-    'https://member.bit.bio',
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "https://member.bit.bio",
+    "http://member.bit.bio",
+    "https://www.member.bit.bio",
+    "http://www.member.bit.bio",
 ]
-CSRF_FAILURE_VIEW = 'django.views.csrf.csrf_failure'
+CSRF_FAILURE_VIEW = "django.views.csrf.csrf_failure"

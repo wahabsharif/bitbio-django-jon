@@ -10,7 +10,13 @@ ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(","
 
 # Add additional security for production
 ALLOWED_HOSTS.extend(
-    ["localhost", "127.0.0.1", "0.0.0.0", "_"]  # Allow nginx default server_name
+    [
+        "localhost",
+        "127.0.0.1",
+        "0.0.0.0",
+        "_",
+        "member.bit.bio",
+    ]  # Allow nginx default server_name and production domain
 )
 
 # Database configuration
@@ -55,6 +61,8 @@ CSRF_TRUSTED_ORIGINS = [
     "http://member.bit.bio",
     "http://fs.capture.dev.workplaceservicing.co.uk",
     "http://rdg.capture.dev.workplaceservicing.co.uk",
+    "https://www.member.bit.bio",  # Add www variant
+    "http://www.member.bit.bio",  # Add www variant
 ]
 
 # Session cookie settings
@@ -68,8 +76,9 @@ CSRF_COOKIE_AGE = 31449600
 
 # CSRF settings for production
 CSRF_COOKIE_SECURE = False  # Set to True when using HTTPS
-CSRF_COOKIE_HTTPONLY = True
-CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_HTTPONLY = False  # Set to False to allow JavaScript access if needed
+CSRF_COOKIE_SAMESITE = "Lax"
+CSRF_FAILURE_VIEW = "django.views.csrf.csrf_failure"
 
 # HTTPS settings (uncomment when using HTTPS)
 # SECURE_SSL_REDIRECT = True

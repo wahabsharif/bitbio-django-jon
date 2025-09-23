@@ -104,7 +104,7 @@ services:
       - ./nginx.production.conf:/etc/nginx/nginx.conf
       - static_volume:/app/staticfiles
       - media_volume:/app/media
-      - ./ssl:/etc/nginx/ssl  # For SSL certificates
+      - /etc/letsencrypt:/etc/letsencrypt:ro  # Let's Encrypt certificates
     depends_on:
       - web
     restart: unless-stopped

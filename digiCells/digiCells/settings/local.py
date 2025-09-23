@@ -1,6 +1,10 @@
 from .base import *
 import os
-import dj_database_url
+
+try:
+    import dj_database_url
+except ImportError:
+    dj_database_url = None
 
 # Override DEBUG for local development
 DEBUG = os.environ.get("DEBUG", "True").lower() == "true"
@@ -8,7 +12,7 @@ ALLOWED_HOSTS = ["localhost", "127.0.0.1", "*", "0.0.0.0"]
 
 # Database configuration
 # Use PostgreSQL in Docker, SQLite for local development
-if os.environ.get("DATABASE_URL"):
+if os.environ.get("DATABASE_URL") and dj_database_url:
     DATABASES = {"default": dj_database_url.parse(os.environ.get("DATABASE_URL"))}
 else:
     DATABASES = {

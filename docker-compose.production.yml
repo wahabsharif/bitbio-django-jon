@@ -109,16 +109,23 @@ services:
       - web
     entrypoint: >
       sh -c "
+        echo '🔐 Checking SSL certificates...' &&
         if [ ! -f /etc/nginx/ssl/cert.pem ] || [ ! -f /etc/nginx/ssl/key.pem ]; then
-          echo '🔐 Generating self-signed SSL certificate...' &&
+          echo '🔐 Installing openssl and generating self-signed SSL certificate...' &&
+          apk add --no-cache openssl &&
           mkdir -p /etc/nginx/ssl &&
           openssl req -x509 -newkey rsa:2048 -nodes -days 365 \
             -keyout /etc/nginx/ssl/key.pem \
             -out /etc/nginx/ssl/cert.pem \
-            -subj '/C=US/ST=CA/L=SanFrancisco/O=MyApp/OU=Dev/CN=localhost';
+            -subj '/C=US/ST=CA/L=SanFrancisco/O=MyApp/OU=Dev/CN=member.bit.bio' \
+            -addext 'subjectAltName=DNS:member.bit.bio,DNS:fs.capture.dev.workplaceservicing.co.uk,DNS:rdg.capture.dev.workplaceservicing.co.uk,DNS:localhost' &&
+          echo '✅ SSL certificate generated successfully!' &&
+          ls -la /etc/nginx/ssl/;
         else
-          echo '✅ SSL certs already exist in ./ssl, skipping generation.';
+          echo '✅ SSL certs already exist, skipping generation.' &&
+          ls -la /etc/nginx/ssl/;
         fi &&
+        echo '🚀 Starting nginx...' &&
         nginx -g 'daemon off;'
       "
     restart: unless-stopped

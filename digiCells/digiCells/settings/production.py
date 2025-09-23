@@ -66,10 +66,10 @@ SESSION_COOKIE_SAMESITE = "Lax"
 CSRF_USE_SESSIONS = False
 CSRF_COOKIE_AGE = 31449600
 
-# Temporarily disable CSRF for testing
-CSRF_COOKIE_SECURE = False
-CSRF_COOKIE_HTTPONLY = False
-CSRF_COOKIE_SAMESITE = None
+# CSRF settings for production
+CSRF_COOKIE_SECURE = False  # Set to True when using HTTPS
+CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SAMESITE = 'Lax'
 
 # HTTPS settings (uncomment when using HTTPS)
 # SECURE_SSL_REDIRECT = True

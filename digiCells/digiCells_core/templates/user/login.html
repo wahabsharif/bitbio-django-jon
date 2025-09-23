@@ -18,6 +18,7 @@
           </ul>
         {% endif %}
         <form method="post" id="id-login-form">
+          {% csrf_token %}
           {% crispy login_form %}
         </form>
       </div>

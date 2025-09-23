@@ -10,6 +10,8 @@ class LoginForm(AuthenticationForm):
         self.helper = FormHelper()
         self.helper.form_method = "post"
         self.helper.form_class = "id-login-form"
+        self.helper.form_action = ""
+        self.helper.include_media = False
 
         self.fields["username"].widget.attrs.update(
             {"class": "form-control", "style": "max-width: 20em;"}
